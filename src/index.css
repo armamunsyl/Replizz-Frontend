@@ -1,0 +1,204 @@
+@import "tailwindcss";
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  :root {
+    color: #1e2433;
+    font-family: 'Avenir Next', 'Nunito Sans', 'Segoe UI', sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100%;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 20% 5%, #c7c9f5 0%, #d3d3f4 28%, rgba(213, 213, 242, 0) 52%),
+      linear-gradient(180deg, #d8d8ef 0%, #d2d5ea 100%);
+  }
+
+  p,
+  h1,
+  h2,
+  h3,
+  dl,
+  dt,
+  dd {
+    margin: 0;
+  }
+}
+
+@keyframes replizzReveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes replizzGlowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(134, 114, 255, 0.16), 0 0 22px rgba(102, 124, 255, 0.16);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(134, 114, 255, 0.08), 0 0 30px rgba(102, 124, 255, 0.28);
+  }
+}
+
+@keyframes replizzMarquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes replizzSlideLeft {
+  0% {
+    opacity: 0;
+    transform: translate3d(-24px, 0, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes replizzSlideRight {
+  0% {
+    opacity: 0;
+    transform: translate3d(24px, 0, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes replizzPopIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.97);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes replizzFloatSoft {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -5px, 0);
+  }
+}
+
+@layer utilities {
+  .anim-reveal {
+    opacity: 0;
+    animation: replizzReveal 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .anim-delay-1 {
+    animation-delay: 0.12s;
+  }
+
+  .anim-delay-2 {
+    animation-delay: 0.22s;
+  }
+
+  .anim-delay-3 {
+    animation-delay: 0.32s;
+  }
+
+  .anim-delay-4 {
+    animation-delay: 0.42s;
+  }
+
+  .anim-delay-5 {
+    animation-delay: 0.52s;
+  }
+
+  .anim-glow {
+    animation: replizzGlowPulse 4.2s ease-in-out infinite;
+  }
+
+  .anim-marquee-track {
+    animation: replizzMarquee 20s linear infinite;
+  }
+
+  .group:hover .anim-marquee-track {
+    animation-play-state: paused;
+  }
+
+  .anim-slide-left {
+    opacity: 0;
+    animation: replizzSlideLeft 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .anim-slide-right {
+    opacity: 0;
+    animation: replizzSlideRight 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .anim-pop {
+    opacity: 0;
+    animation: replizzPopIn 0.55s cubic-bezier(0.2, 0.9, 0.25, 1) forwards;
+  }
+
+  .anim-float-soft {
+    animation: replizzFloatSoft 5.6s ease-in-out infinite;
+  }
+
+  .anim-hover-lift {
+    transition: transform 0.26s ease, box-shadow 0.26s ease, filter 0.26s ease;
+    will-change: transform;
+  }
+
+  .anim-hover-lift:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-reveal,
+  .anim-slide-left,
+  .anim-slide-right,
+  .anim-pop,
+  .anim-glow,
+  .anim-marquee-track,
+  .anim-float-soft,
+  .anim-hover-lift {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
