@@ -1,58 +1,72 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react'
 
-const TermsOfService = () => {
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
+const sections = [
+  {
+    title: '1. Agreement to Terms',
+    content: 'By accessing or using Replizz, you agree to be bound by these Terms of Service. If you disagree with any part of these terms, you may not access the service.',
+  },
+  {
+    title: '2. Description of Service',
+    content: 'Replizz is a SaaS platform that enables Facebook Page owners to automate customer replies using AI. The service connects to your Facebook Page via the Messenger API and generates responses to incoming messages.',
+  },
+  {
+    title: '3. Account Registration',
+    content: 'You must create an account to use Replizz. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.',
+  },
+  {
+    title: '4. Acceptable Use',
+    content: 'You agree not to use Replizz to send spam, illegal content, or messages that violate Facebook\'s Community Standards or Platform Policies. You are solely responsible for the content generated and sent through your connected Facebook Pages.',
+  },
+  {
+    title: '5. Facebook Integration',
+    content: 'Use of Replizz requires compliance with Meta\'s Terms of Service and Facebook Platform Policies. We reserve the right to suspend accounts that violate these policies or whose pages are flagged by Facebook.',
+  },
+  {
+    title: '6. Subscription and Billing',
+    content: 'Some features of Replizz require a paid subscription. Subscription fees are billed in advance on a monthly basis. You may cancel your subscription at any time. Refunds are not provided for unused portions of a billing period.',
+  },
+  {
+    title: '7. Intellectual Property',
+    content: 'The Replizz platform, including its design, code, and content, is owned by Replizz and protected by intellectual property laws. You retain ownership of the content on your Facebook Pages.',
+  },
+  {
+    title: '8. Limitation of Liability',
+    content: 'Replizz is provided "as is" without warranty of any kind. We are not liable for any indirect, incidental, or consequential damages arising from your use of the service, including lost profits or data.',
+  },
+  {
+    title: '9. Termination',
+    content: 'We reserve the right to suspend or terminate your account at any time for violations of these Terms. You may also delete your account at any time by contacting support or through the dashboard.',
+  },
+  {
+    title: '10. Changes to Terms',
+    content: 'We may update these Terms of Service from time to time. We will notify you of significant changes via email or through the platform. Continued use after changes constitutes acceptance of the updated terms.',
+  },
+  {
+    title: '11. Contact Us',
+    content: 'If you have any questions about these Terms, please contact us at legal@replizz.com.',
+  },
+]
 
-    return (
-        <div style={{ padding: '6rem 2rem 4rem', maxWidth: '800px', margin: '0 auto', color: '#e8ebf7', lineHeight: '1.6' }}>
-            <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#fff' }}>Terms of Service</h1>
-            <p style={{ color: '#a0aec0', marginBottom: '2rem' }}>Last updated: March 2026</p>
+function TermsOfService() {
+  useEffect(() => { window.scrollTo(0, 0) }, [])
 
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#8b5cf6' }}>1. Agreement to Terms</h2>
-                <p style={{ marginBottom: '1rem' }}>
-                    By accessing or using Replizz, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, then you may not access the service.
-                </p>
-            </section>
+  return (
+    <div style={{ padding: '80px 24px 64px', maxWidth: 760, margin: '0 auto' }}>
+      <div style={{ marginBottom: 40 }}>
+        <h1 style={{ fontSize: 32, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', marginBottom: 8 }}>Terms of Service</h1>
+        <p style={{ fontSize: 14, color: '#9CA3AF' }}>Last updated: March 2026</p>
+      </div>
 
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#8b5cf6' }}>2. Description of Service</h2>
-                <p style={{ marginBottom: '1rem' }}>
-                    Replizz is an AI-powered customer support SaaS platform that connects to Facebook Pages to automate replies to messages. We utilize third-party APIs including OpenAI and Facebook Graph API to provide this service.
-                </p>
-            </section>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+        {sections.map(section => (
+          <section key={section.title}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 8 }}>{section.title}</h2>
+            <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.75 }}>{section.content}</p>
+          </section>
+        ))}
+      </div>
+    </div>
+  )
+}
 
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#8b5cf6' }}>3. User Accounts</h2>
-                <p style={{ marginBottom: '1rem' }}>
-                    When you create an account with us, you must provide information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our Service.
-                </p>
-            </section>
-
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#8b5cf6' }}>4. Facebook Platform Rules</h2>
-                <p style={{ marginBottom: '1rem' }}>
-                    By using Replizz to automate interactions on Facebook, you agree to comply with all Facebook Platform Policies, Community Standards, and Terms of Service. Replizz is not responsible for any suspension or banning of your Facebook Page due to misuse of the automation capabilities.
-                </p>
-            </section>
-
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#8b5cf6' }}>5. Limitation of Liability</h2>
-                <p style={{ marginBottom: '1rem' }}>
-                    In no event shall Replizz, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.
-                </p>
-            </section>
-
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#8b5cf6' }}>6. Contact Information</h2>
-                <p style={{ marginBottom: '1rem' }}>
-                    If you have any questions about these Terms, please contact us at support@replizz.com.
-                </p>
-            </section>
-        </div>
-    );
-};
-
-export default TermsOfService;
+export default TermsOfService

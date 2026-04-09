@@ -1,312 +1,227 @@
 import { useCallback, useEffect, useState, Fragment } from 'react'
-import Icon from '../ui/Icon'
 import api from '../../lib/api'
 
 function AdminUsersView() {
-    const [users, setUsers] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [updating, setUpdating] = useState(null)
-    const [expandedUserId, setExpandedUserId] = useState(null)
-    const [editingPageId, setEditingPageId] = useState(null)
-    const [editPlanForm, setEditPlanForm] = useState({ planType: 'free', monthlyLimit: 100 })
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [updating, setUpdating] = useState(null)
+  const [expandedUserId, setExpandedUserId] = useState(null)
 
-    const fetchUsers = useCallback(async () => {
-        setLoading(true)
-        try {
-            const { data } = await api.get('/api/admin/users')
-            setUsers(data.data || [])
-        } catch (err) {
-            console.error('Fetch users error:', err)
-        } finally {
-            setLoading(false)
-        }
-    }, [])
-
-    useEffect(() => {
-        fetchUsers()
-    }, [fetchUsers])
-
-    const handleRoleChange = async (userId, newRole) => {
-        setUpdating(userId)
-        try {
-            const { data } = await api.put(`/api/admin/users/${userId}/role`, { role: newRole })
-            setUsers((prev) => prev.map((u) => (u._id === userId ? { ...u, role: data.data.role } : u)))
-        } catch (err) {
-            console.error('Update role error:', err)
-            alert('Failed to update role')
-        } finally {
-            setUpdating(null)
-        }
+  const fetchUsers = useCallback(async () => {
+    setLoading(true)
+    try {
+      const { data } = await api.get('/api/admin/users')
+      setUsers(data.data || [])
+    } catch (err) {
+      console.error('Fetch users error:', err)
+    } finally {
+      setLoading(false)
     }
+  }, [])
 
-    const handleDelete = async (userId, userName) => {
-        if (!confirm(`Are you sure you want to delete "${userName}"? This cannot be undone.`)) return
-        try {
-            await api.delete(`/api/admin/users/${userId}`)
-            setUsers((prev) => prev.filter((u) => u._id !== userId))
-        } catch (err) {
-            console.error('Delete user error:', err)
-            alert(err.response?.data?.message || 'Failed to delete user')
-        }
+  useEffect(() => { fetchUsers() }, [fetchUsers])
+
+  const handleRoleChange = async (userId, newRole) => {
+    setUpdating(userId + '-role')
+    try {
+      const { data } = await api.put(`/api/admin/users/${userId}/role`, { role: newRole })
+      setUsers(prev => prev.map(u => u._id === userId ? { ...u, role: data.data.role } : u))
+    } catch (err) {
+      console.error('Update role error:', err)
+      alert('Failed to update role')
+    } finally {
+      setUpdating(null)
     }
+  }
 
-    const toggleExpand = (userId) => {
-        setExpandedUserId(prev => prev === userId ? null : userId)
-        setEditingPageId(null)
+  const handleDelete = async (userId, userName) => {
+    if (!confirm(`Are you sure you want to delete "${userName}"? This cannot be undone.`)) return
+    try {
+      await api.delete(`/api/admin/users/${userId}`)
+      setUsers(prev => prev.filter(u => u._id !== userId))
+    } catch (err) {
+      console.error('Delete user error:', err)
+      alert(err.response?.data?.message || 'Failed to delete user')
     }
+  }
 
-    const handleEditPlanClick = (page) => {
-        setEditingPageId(page.pageId)
-        setEditPlanForm({
-            planType: page.planType || 'free',
-            monthlyLimit: page.monthlyLimit || 100
-        })
-    }
+  const toggleExpand = (userId) => {
+    setExpandedUserId(prev => prev === userId ? null : userId)
+  }
 
-    const handleCancelEdit = () => {
-        setEditingPageId(null)
-    }
+  const thStyle = { padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap', borderBottom: '1px solid #E5E7EB' }
+  const tdStyle = { padding: '10px 12px', fontSize: 13, color: '#374151', borderBottom: '1px solid #F3F4F6', verticalAlign: 'middle' }
 
-    const handleSavePlan = async (userId, pageId) => {
-        try {
-            setUpdating(pageId)
-            const { data } = await api.put(`/api/admin/pages/${pageId}/plan`, editPlanForm)
-            const updatedPage = data.data
-            
-            setUsers((prev) => prev.map((u) => {
-                if (u._id !== userId) return u
-                return {
-                    ...u,
-                    pages: u.pages.map(p => p.pageId === pageId ? { ...p, planType: updatedPage.planType, monthlyLimit: updatedPage.monthlyLimit } : p)
-                }
-            }))
-            
-            setEditingPageId(null)
-        } catch (err) {
-            console.error('Update page plan error:', err)
-            alert(err.response?.data?.message || 'Failed to update plan')
-        } finally {
-            setUpdating(null)
-        }
-    }
+  const roleBg = (role) => role === 'Admin' ? { bg: '#FEF3C7', color: '#92400E' } : role === 'Moderator' ? { bg: '#EDE9FE', color: '#5B21B6' } : { bg: '#F3F4F6', color: '#374151' }
+  const planColor = (p) => p === 'pro' ? { bg: '#F5F3FF', color: '#7C3AED' } : p === 'standard' ? { bg: '#EFF6FF', color: '#2563EB' } : p === 'custom' ? { bg: '#FEF3C7', color: '#92400E' } : { bg: '#F3F4F6', color: '#6B7280' }
 
-    const roleBadgeClass = (role) => {
-        switch (role) {
-            case 'Admin': return 'admin-role-badge admin-role-admin'
-            case 'Moderator': return 'admin-role-badge admin-role-moderator'
-            default: return 'admin-role-badge admin-role-user'
-        }
-    }
+  return (
+    <div style={{ padding: '28px 28px 40px', minHeight: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+        <div>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Admin Panel</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>User Management</h1>
+        </div>
+        <span style={{ fontSize: 12, color: '#6B7280', background: '#F3F4F6', border: '1px solid #E5E7EB', padding: '4px 10px', borderRadius: 6 }}>{users.length} users</span>
+      </div>
 
-    return (
-        <section className="workspace admin-workspace anim-reveal" aria-label="User Management">
-            <header className="workspace-top admin-workspace-top anim-pop anim-delay-1">
-                <div className="overview-title-wrap">
-                    <p className="overview-kicker">Admin Panel</p>
-                    <h1>User Management</h1>
-                </div>
-                <div className="admin-user-count">
-                    <span>{users.length} users</span>
-                </div>
-            </header>
+      {loading ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '40px 0', color: '#9CA3AF', fontSize: 13 }}>
+          <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid #E5E7EB', borderTopColor: '#2563EB', animation: 'spin 0.8s linear infinite' }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          Loading users…
+        </div>
+      ) : users.length === 0 ? (
+        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: '48px 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 14, color: '#9CA3AF' }}>No users found.</p>
+        </div>
+      ) : (
+        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>Name</th>
+                  <th style={thStyle}>Email</th>
+                  <th style={thStyle}>Role</th>
+                  <th style={thStyle}>Plan</th>
+                  <th style={thStyle}>Usage</th>
+                  <th style={thStyle}>Pages</th>
+                  <th style={thStyle}>Registered</th>
+                  <th style={thStyle}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map(user => (
+                  <Fragment key={user._id}>
+                    <tr style={{ background: expandedUserId === user._id ? '#F9FAFB' : 'transparent' }}>
+                      {/* Name */}
+                      <td style={tdStyle}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                            {user.name ? user.name.charAt(0).toUpperCase() : '?'}
+                          </div>
+                          <span style={{ fontWeight: 500, color: '#111827' }}>{user.name}</span>
+                        </div>
+                      </td>
 
-            <div className="admin-content anim-pop anim-delay-2">
-                {loading ? (
-                    <div className="admin-loading">
-                        <div className="admin-spinner" />
-                        <p>Loading users…</p>
-                    </div>
-                ) : users.length === 0 ? (
-                    <p className="admin-empty">No users found.</p>
-                ) : (
-                    <div className="admin-table-wrap">
-                        <table className="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Plan</th>
-                                    <th>Pages</th>
-                                    <th>Registered</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.map((user) => (
-                                    <Fragment key={user._id}>
-                                        <tr className={expandedUserId === user._id ? 'admin-row-expanded' : ''}>
-                                            <td>
-                                                <div className="admin-user-cell">
-                                                    <div className="admin-user-avatar">
-                                                        {user.name ? user.name.charAt(0).toUpperCase() : '?'}
-                                                    </div>
-                                                    <span>{user.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="admin-email-cell">{user.email}</td>
-                                            <td>
-                                                <select
-                                                    className={roleBadgeClass(user.role)}
-                                                    value={user.role || 'User'}
-                                                    disabled={updating === user._id}
-                                                    onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                                                >
-                                                    <option value="User">User</option>
-                                                    <option value="Moderator">Moderator</option>
-                                                    <option value="Admin">Admin</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <span className={`admin-plan-badge ${user.planType === 'pro' ? 'admin-plan-pro' : ''}`}>
-                                                    {user.planType || 'free'}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div className="admin-pages-count">
-                                                    <span>{user.pages?.length || 0}</span>
-                                                    {(user.pages?.length || 0) > 0 && (
-                                                        <button
-                                                            className="admin-expand-btn"
-                                                            onClick={() => toggleExpand(user._id)}
-                                                            title={expandedUserId === user._id ? "Collapse pages" : "View connected pages"}
-                                                        >
-                                                            <svg
-                                                                width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                                                                style={{ transform: expandedUserId === user._id ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-                                                            >
-                                                                <polyline points="6 9 12 15 18 9"></polyline>
-                                                            </svg>
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="admin-date-cell">
-                                                {user.createdAt
-                                                    ? new Date(user.createdAt).toLocaleDateString('en-US', {
-                                                        year: 'numeric',
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                    })
-                                                    : '—'}
-                                            </td>
-                                            <td>
-                                                <button
-                                                    className="admin-delete-btn"
-                                                    type="button"
-                                                    onClick={() => handleDelete(user._id, user.name)}
-                                                    title="Delete user"
-                                                >
-                                                    <Icon name="trash" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        {/* Expandable row for Pages details */}
-                                        {expandedUserId === user._id && user.pages && user.pages.length > 0 && (
-                                            <tr className="admin-expanded-details-row">
-                                                <td colSpan="7" className="admin-expanded-td">
-                                                    <div className="admin-user-details-box anim-reveal">
-                                                        <h4 className="admin-details-title">Connected Facebook Pages</h4>
-                                                        <div className="admin-details-grid">
-                                                            {user.pages.map(page => (
-                                                                <div key={page.pageId} className="admin-page-detail-card">
-                                                                    <div className="admin-page-card-header">
-                                                                        {page.pagePicture ? (
-                                                                            <img src={page.pagePicture} alt={page.pageName} />
-                                                                        ) : (
-                                                                            <div className="admin-page-placeholder">{page.pageName?.charAt(0) || 'P'}</div>
-                                                                        )}
-                                                                        <div>
-                                                                            <strong>{page.pageName}</strong>
-                                                                            <span className="admin-page-id">ID: {page.pageId}</span>
-                                                                        </div>
-                                                                        <span className={`admin-status-pill ${page.isActive ? 'admin-status-active' : 'admin-status-inactive'}`} style={{ marginLeft: 'auto' }}>
-                                                                            {page.isActive ? 'Active' : 'Inactive'}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="admin-page-stats-mini">
-                                                                        <div className="stat-mini">
-                                                                            <span className="stat-mini-label">AI Status</span>
-                                                                            <span className={`stat-mini-val ${page.aiEnabled ? 'text-green' : 'text-gray'}`}>{page.aiEnabled ? 'ON' : 'OFF'}</span>
-                                                                        </div>
-                                                                        <div className="stat-mini">
-                                                                            <span className="stat-mini-label">Messages</span>
-                                                                            <span className="stat-mini-val">{page.totalMessages || 0}</span>
-                                                                        </div>
-                                                                        <div className="stat-mini">
-                                                                            <span className="stat-mini-label">Tokens</span>
-                                                                            <span className="stat-mini-val">{(page.totalTokensUsed || 0).toLocaleString()}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    
-                                                                    {editingPageId === page.pageId ? (
-                                                                        <div className="admin-page-edit-form" style={{ marginTop: '1rem', padding: '1rem', background: 'var(--surface-color)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                                                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                                                                                <div>
-                                                                                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Plan Type</label>
-                                                                                    <select 
-                                                                                        value={editPlanForm.planType} 
-                                                                                        onChange={e => setEditPlanForm(p => ({ ...p, planType: e.target.value }))}
-                                                                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-color)' }}
-                                                                                    >
-                                                                                        <option value="free">Free</option>
-                                                                                        <option value="pro">Pro</option>
-                                                                                    </select>
-                                                                                </div>
-                                                                                <div>
-                                                                                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Monthly Limit</label>
-                                                                                    <input 
-                                                                                        type="number" 
-                                                                                        min="0"
-                                                                                        value={editPlanForm.monthlyLimit} 
-                                                                                        onChange={e => setEditPlanForm(p => ({ ...p, monthlyLimit: e.target.value }))}
-                                                                                        style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-color)' }}
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-                                                                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                                                                                <button onClick={handleCancelEdit} style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-                                                                                <button onClick={() => handleSavePlan(user._id, page.pageId)} disabled={updating === page.pageId} style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem', background: 'var(--primary-color)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                                                                                    {updating === page.pageId ? 'Saving...' : 'Save'}
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color-light)' }}>
-                                                                            <div style={{ display: 'flex', gap: '1rem' }}>
-                                                                                <div>
-                                                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Plan</span>
-                                                                                    <span className="uppercase" style={{ fontSize: '0.85rem', fontWeight: '600' }}>{page.planType || 'free'}</span>
-                                                                                </div>
-                                                                                <div>
-                                                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block' }}>Limit</span>
-                                                                                    <span style={{ fontSize: '0.85rem', fontWeight: '600' }}>{page.monthlyUsageCount || 0} / {page.monthlyLimit || 100}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <button 
-                                                                                onClick={() => handleEditPlanClick(page)}
-                                                                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', background: 'var(--surface-color-hover)', color: 'var(--text-color)', border: '1px solid var(--border-color)', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                                                                            >
-                                                                                <Icon name="edit" size={12} /> Edit Plan
-                                                                            </button>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </Fragment>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
-        </section>
-    )
+                      {/* Email */}
+                      <td style={{ ...tdStyle, color: '#6B7280' }}>{user.email}</td>
+
+                      {/* Role */}
+                      <td style={tdStyle}>
+                        <select
+                          value={user.role || 'User'}
+                          disabled={updating === user._id + '-role'}
+                          onChange={e => handleRoleChange(user._id, e.target.value)}
+                          style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 4, border: '1px solid #E5E7EB', background: roleBg(user.role).bg, color: roleBg(user.role).color, cursor: 'pointer' }}
+                        >
+                          <option value="User">User</option>
+                          <option value="Moderator">Moderator</option>
+                          <option value="Admin">Admin</option>
+                        </select>
+                      </td>
+
+                      {/* Plan — managed via workspace; read-only here */}
+                      <td style={tdStyle}>
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 4, background: planColor(user.planType).bg, color: planColor(user.planType).color, textTransform: 'uppercase' }}>
+                          {user.planType || 'free'}
+                        </span>
+                      </td>
+
+                      {/* Usage */}
+                      <td style={tdStyle}>
+                        <div style={{ fontSize: 12, color: '#374151', whiteSpace: 'nowrap' }}>
+                          {(user.usedMessages ?? 0).toLocaleString()} / {(user.messageLimit ?? 100).toLocaleString()}
+                        </div>
+                        <div style={{ marginTop: 4, height: 4, width: 80, background: '#F3F4F6', borderRadius: 99, overflow: 'hidden' }}>
+                          <div style={{
+                            height: '100%',
+                            borderRadius: 99,
+                            width: `${Math.min(((user.usedMessages ?? 0) / (user.messageLimit || 100)) * 100, 100)}%`,
+                            background: ((user.usedMessages ?? 0) / (user.messageLimit || 100)) >= 0.9 ? '#EF4444' : ((user.usedMessages ?? 0) / (user.messageLimit || 100)) >= 0.7 ? '#F59E0B' : '#2563EB',
+                          }} />
+                        </div>
+                      </td>
+
+                      {/* Pages */}
+                      <td style={tdStyle}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontWeight: 600, color: '#111827' }}>{user.pages?.length || 0}</span>
+                          {(user.pages?.length || 0) > 0 && (
+                            <button type="button" onClick={() => toggleExpand(user._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2563EB', padding: 0, display: 'flex', alignItems: 'center' }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: expandedUserId === user._id ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>
+                                <polyline points="6 9 12 15 18 9" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Registered */}
+                      <td style={{ ...tdStyle, whiteSpace: 'nowrap', color: '#6B7280' }}>
+                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
+                      </td>
+
+                      {/* Actions */}
+                      <td style={tdStyle}>
+                        <button type="button" onClick={() => handleDelete(user._id, user.name)} style={{ fontSize: 12, fontWeight: 500, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>Delete</button>
+                      </td>
+                    </tr>
+
+                    {/* Expanded page rows */}
+                    {expandedUserId === user._id && user.pages?.length > 0 && (
+                      <tr>
+                        <td colSpan={8} style={{ padding: '0 12px 16px', background: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
+                          <div style={{ padding: '14px 0 0' }}>
+                            <p style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Connected Facebook Pages</p>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 10 }}>
+                              {user.pages.map(page => (
+                                <div key={page.pageId} style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 10, padding: '12px 14px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                                    {page.pagePicture ? (
+                                      <img src={page.pagePicture} alt={page.pageName} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                                    ) : (
+                                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                                        {page.pageName?.charAt(0) || 'P'}
+                                      </div>
+                                    )}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{page.pageName}</p>
+                                      <p style={{ fontSize: 11, color: '#9CA3AF' }}>ID: {page.pageId}</p>
+                                    </div>
+                                    <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: page.isActive ? '#F0FDF4' : '#F3F4F6', color: page.isActive ? '#16A34A' : '#9CA3AF', flexShrink: 0 }}>
+                                      {page.isActive ? 'Active' : 'Inactive'}
+                                    </span>
+                                  </div>
+                                  <div style={{ display: 'flex', gap: 16 }}>
+                                    {[
+                                      { label: 'AI', value: page.aiEnabled ? 'ON' : 'OFF', green: page.aiEnabled },
+                                      { label: 'Auto', value: page.automationEnabled !== false ? 'ON' : 'OFF', green: page.automationEnabled !== false },
+                                      { label: 'Messages', value: page.totalMessages || 0 },
+                                    ].map(s => (
+                                      <div key={s.label}>
+                                        <p style={{ fontSize: 10, color: '#9CA3AF', marginBottom: 1 }}>{s.label}</p>
+                                        <p style={{ fontSize: 12, fontWeight: 600, color: s.green !== undefined ? (s.green ? '#16A34A' : '#9CA3AF') : '#111827' }}>{s.value}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default AdminUsersView

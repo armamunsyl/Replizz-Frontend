@@ -2,46 +2,14 @@ import { useCallback, useEffect, useState } from 'react'
 import ProfilePill from '../ui/ProfilePill'
 import api from '../../lib/api'
 import { usePage } from '../../context/PageContext'
-import { useAuth } from '../../context/AuthContext'
-
-function timeLabel() {
-  const now = new Date()
-  const clock = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  }).format(now)
-
-  return `Today, ${clock}`
-}
-
-function readFileAsDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = () => reject(new Error('Could not read selected image.'))
-
-    reader.readAsDataURL(file)
-  })
-}
 
 function emptyForm() {
-  return {
-    image: '',
-    productName: '',
-    description: '',
-    price: '',
-    additionalComment: '',
-    discount: '',
-    availability: 'available',
-    customInstruction: '',
-  }
+  return { imageUrl: '', productName: '', description: '', price: '', additionalComment: '', discount: '', availability: 'available', customInstruction: '' }
 }
 
 function mapProductToForm(product) {
   return {
-    image: product.imageBase64 || '',
+    imageUrl: product.imageUrl || '',
     productName: product.name,
     description: product.description || '',
     price: product.price,
@@ -52,12 +20,13 @@ function mapProductToForm(product) {
   }
 }
 
+const inputStyle = { width: '100%', padding: '8px 10px', fontSize: 13, color: '#111827', border: '1px solid #E5E7EB', borderRadius: 8, outline: 'none', background: '#fff', boxSizing: 'border-box' }
+const labelStyle = { display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 5 }
+
 function ProductView() {
   const { selectedPage } = usePage()
-  const { user } = useAuth()
   const [products, setProducts] = useState([])
   const [loadingProducts, setLoadingProducts] = useState(false)
-  const displayName = user?.displayName || user?.email || 'User'
   const [form, setForm] = useState(emptyForm())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -83,425 +52,250 @@ function ProductView() {
     setForm(emptyForm())
   }, [fetchProducts])
 
-  const updateForm = (field, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-  }
-
-  const handleImageUpload = async (event) => {
-    const file = event.target.files?.[0]
-
-    if (!file) {
-      return
-    }
-
-    try {
-      const dataUrl = await readFileAsDataUrl(file)
-      updateForm('image', String(dataUrl))
-      setError('')
-    } catch {
-      setError('Image upload failed. Please try another file.')
-    }
-  }
+  const updateForm = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
 
   const handleSaveProduct = async () => {
     if (!selectedPage) return
     const name = form.productName.trim()
-    const price = form.price.trim()
-
-    if (!name || !price) {
-      setError('Product name and price are required.')
-      return
-    }
-
-    setSaving(true)
-    setError('')
-
+    const price = form.price.toString().trim()
+    if (!name || !price) { setError('Product name and price are required.'); return }
+    setSaving(true); setError('')
     const payload = {
-      name,
-      description: form.description.trim(),
-      price,
+      name, description: form.description.trim(), price,
       additionalComment: form.additionalComment.trim(),
-      discount: form.discount.trim() || '0',
+      discount: form.discount.toString().trim() || '0',
       availability: form.availability,
       customInstruction: form.customInstruction.trim(),
-      imageBase64: form.image,
+      imageUrl: form.imageUrl.trim() || undefined,
     }
-
     try {
       if (editingProductId) {
         const { data } = await api.put(`/api/products/${selectedPage.pageId}/${editingProductId}`, payload)
-        setProducts((prev) => prev.map((p) => p._id === editingProductId ? data.data : p))
+        setProducts(prev => prev.map(p => p._id === editingProductId ? data.data : p))
         setEditingProductId(null)
       } else {
         const { data } = await api.post(`/api/products/${selectedPage.pageId}`, payload)
-        setProducts((prev) => [data.data, ...prev])
+        setProducts(prev => [data.data, ...prev])
       }
       setForm(emptyForm())
-    } catch (err) {
+    } catch {
       setError('Failed to save product. Please try again.')
     } finally {
       setSaving(false)
     }
   }
 
-  const handleEditProduct = (product) => {
-    setEditingProductId(product._id)
-    setForm(mapProductToForm(product))
-    setError('')
-  }
-
-  const handleCancelEdit = () => {
-    setEditingProductId(null)
-    setForm(emptyForm())
-    setError('')
-  }
-
+  const handleEditProduct = (product) => { setEditingProductId(product._id); setForm(mapProductToForm(product)); setError('') }
+  const handleCancelEdit = () => { setEditingProductId(null); setForm(emptyForm()); setError('') }
   const handleDeleteProduct = async (productId) => {
     if (!selectedPage) return
     try {
       await api.delete(`/api/products/${selectedPage.pageId}/${productId}`)
-      setProducts((prev) => prev.filter((p) => p._id !== productId))
+      setProducts(prev => prev.filter(p => p._id !== productId))
       if (editingProductId === productId) handleCancelEdit()
       if (selectedProduct?._id === productId) setSelectedProduct(null)
-    } catch (err) {
-      console.error('Delete product error:', err)
-    }
+    } catch (err) { console.error('Delete product error:', err) }
   }
 
   return (
-    <section className="workspace product-view anim-reveal" aria-label="Your products dashboard">
-      <header className="workspace-top product-top anim-pop anim-delay-1">
-        <div className="overview-title-wrap">
-          <p className="overview-kicker">Workspace</p>
-          <h1>Your Product</h1>
+    <div style={{ padding: '28px 28px 40px', minHeight: '100%' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+        <div>
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>Workspace</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>Products</h1>
         </div>
-
-        <div className="workspace-actions">
-          <ProfilePill />
-        </div>
-      </header>
-
-      <div className="product-content anim-pop anim-delay-2">
-        <section className="product-form-card anim-hover-lift" aria-label="Product form">
-          <div className="product-grid">
-            <div className="product-field product-field-full">
-              <label htmlFor="product-image" className="product-label">
-                Image Upload
-              </label>
-              <div className="product-image-row">
-                <label htmlFor="product-image" className="product-upload-button anim-hover-lift">
-                  Upload Image
-                </label>
-                <input
-                  id="product-image"
-                  type="file"
-                  accept="image/*"
-                  className="product-file-input"
-                  onChange={handleImageUpload}
-                />
-                <div className="product-image-preview">
-                  {form.image ? (
-                    <img src={form.image} alt="Product preview" />
-                  ) : (
-                    <span>No image selected</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="product-field">
-              <label htmlFor="product-name" className="product-label">
-                Product Name
-              </label>
-              <input
-                id="product-name"
-                type="text"
-                className="product-input"
-                value={form.productName}
-                onChange={(event) => updateForm('productName', event.target.value)}
-                placeholder="Enter product name"
-              />
-            </div>
-
-            <div className="product-field">
-              <label htmlFor="product-price" className="product-label">
-                Price
-              </label>
-              <input
-                id="product-price"
-                type="number"
-                className="product-input"
-                value={form.price}
-                onChange={(event) => updateForm('price', event.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="product-field">
-              <label htmlFor="product-discount" className="product-label">
-                Discount
-              </label>
-              <input
-                id="product-discount"
-                type="number"
-                className="product-input"
-                value={form.discount}
-                onChange={(event) => updateForm('discount', event.target.value)}
-                placeholder="0"
-              />
-            </div>
-
-            <div className="product-field">
-              <label className="product-label">Availability</label>
-              <div className="product-toggle-row" role="radiogroup" aria-label="Availability">
-                <button
-                  type="button"
-                  className={`product-toggle anim-hover-lift ${form.availability === 'available' ? 'active' : ''}`}
-                  onClick={() => updateForm('availability', 'available')}
-                >
-                  Available
-                </button>
-                <button
-                  type="button"
-                  className={`product-toggle anim-hover-lift ${form.availability === 'stock-out' ? 'active' : ''}`}
-                  onClick={() => updateForm('availability', 'stock-out')}
-                >
-                  Stock Out
-                </button>
-              </div>
-            </div>
-
-            <div className="product-field product-field-full">
-              <label htmlFor="product-description" className="product-label">
-                Description
-              </label>
-              <textarea
-                id="product-description"
-                className="product-textarea"
-                value={form.description}
-                onChange={(event) => updateForm('description', event.target.value)}
-                placeholder="Write product description"
-              />
-            </div>
-
-            <div className="product-field product-field-full">
-              <label htmlFor="product-comment" className="product-label">
-                Additional Comment
-              </label>
-              <textarea
-                id="product-comment"
-                className="product-textarea"
-                value={form.additionalComment}
-                onChange={(event) => updateForm('additionalComment', event.target.value)}
-                placeholder="Write any additional comment"
-              />
-            </div>
-
-            <div className="product-field product-field-full">
-              <label htmlFor="product-instruction" className="product-label">
-                Custom Instruction For This Product
-              </label>
-              <textarea
-                id="product-instruction"
-                className="product-textarea"
-                value={form.customInstruction}
-                onChange={(event) => updateForm('customInstruction', event.target.value)}
-                placeholder="Write custom instruction"
-              />
-            </div>
-          </div>
-
-          <div className="product-form-footer">
-            {error ? <p className="product-error-text">{error}</p> : <span />}
-            <div className="product-form-actions">
-              {editingProductId ? (
-                <button type="button" className="product-cancel-button anim-hover-lift" onClick={handleCancelEdit}>
-                  Cancel
-                </button>
-              ) : null}
-              <button type="button" className="product-save-button anim-hover-lift" onClick={handleSaveProduct}>
-                {saving ? 'Saving...' : editingProductId ? 'Update' : 'Save'}
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <section className="product-list-card anim-hover-lift" aria-label="Saved products list">
-          <header className="product-list-header">
-            <h2>Saved Product List</h2>
-            <p>{products.length} item(s)</p>
-          </header>
-
-          <div className="product-list-wrap">
-            <table className="product-table">
-              <thead>
-                <tr>
-                  <th>Image</th>
-                  <th>Product</th>
-                  <th>Price</th>
-                  <th>Discount</th>
-                  <th>Status</th>
-                  <th>Instruction</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loadingProducts ? (
-                  <tr><td colSpan={7} style={{ opacity: 0.4, padding: '1.5rem' }}>Loading products…</td></tr>
-                ) : products.length === 0 ? (
-                  <tr><td colSpan={7} style={{ opacity: 0.4, padding: '1.5rem' }}>No products yet. Add one above.</td></tr>
-                ) : products.map((product, index) => (
-                  <tr key={product._id} className="anim-pop" style={{ animationDelay: `${0.12 + index * 0.03}s` }}>
-                    <td>
-                      <div className="product-cell-image">
-                        {product.imageBase64 ? (
-                          <img src={product.imageBase64} alt={product.name} />
-                        ) : (
-                          <span>No Image</span>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <p className="product-cell-name">{product.name}</p>
-                      <p className="product-cell-subtext">{product.description || 'No description'}</p>
-                      <p className="product-cell-subtext">{product.additionalComment || 'No comment'}</p>
-                    </td>
-                    <td>
-                      <span className="product-price-pill">${product.price}</span>
-                    </td>
-                    <td>
-                      <span className="product-discount-pill">
-                        {product.discount ? `${product.discount}%` : '0%'}
-                      </span>
-                    </td>
-                    <td>
-                      <span
-                        className={`product-status-pill ${product.availability === 'available' ? 'available' : 'stock-out'
-                          }`}
-                      >
-                        {product.availability === 'available' ? 'Available' : 'Stock Out'}
-                      </span>
-                    </td>
-                    <td>
-                      <p className="product-cell-subtext">
-                        {product.customInstruction || 'No custom instruction'}
-                      </p>
-                      <p className="product-cell-subtext">{product.savedAt || new Date(product.createdAt).toLocaleDateString()}</p>
-                    </td>
-                    <td>
-                      <div className="product-action-row">
-                        <button
-                          type="button"
-                          className="product-view-button anim-hover-lift"
-                          onClick={() => setSelectedProduct(product)}
-                        >
-                          View
-                        </button>
-                        <button
-                          type="button"
-                          className="product-edit-button anim-hover-lift"
-                          onClick={() => handleEditProduct(product)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="product-delete-button anim-hover-lift"
-                          onClick={() => handleDeleteProduct(product._id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <ProfilePill />
       </div>
 
-      {selectedProduct ? (
-        <div
-          className="product-modal-backdrop anim-pop"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Product details modal"
-          onClick={() => setSelectedProduct(null)}
-        >
-          <article className="product-modal anim-slide-right" onClick={(event) => event.stopPropagation()}>
-            <header className="product-modal-head">
-              <h2>Product Details</h2>
-              <button
-                type="button"
-                className="product-modal-close anim-hover-lift"
-                onClick={() => setSelectedProduct(null)}
-              >
-                Close
-              </button>
-            </header>
+      {!selectedPage ? (
+        <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: '48px 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 14, color: '#9CA3AF' }}>Select a Facebook page from the sidebar to manage products.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 900 }}>
+          {/* Form card */}
+          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: '20px' }}>
+            <div style={{ marginBottom: 16 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827', marginBottom: 4 }}>
+                {editingProductId ? 'Edit Product' : 'Add Product'}
+              </h2>
+              <p style={{ fontSize: 13, color: '#6B7280' }}>
+                {editingProductId ? 'Update the details for this product.' : 'Add a new product for the AI to reference when answering questions.'}
+              </p>
+            </div>
 
-            <div className="product-modal-body">
-              <div className="product-modal-image">
-                {selectedProduct.imageBase64 ? (
-                  <img src={selectedProduct.imageBase64} alt={selectedProduct.name} />
-                ) : (
-                  <span>No Image</span>
+            {/* Image URL */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={labelStyle}>Product Image URL</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <input
+                  type="url"
+                  value={form.imageUrl}
+                  onChange={e => updateForm('imageUrl', e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  style={{ ...inputStyle, flex: 1 }}
+                  onFocus={e => e.target.style.borderColor = '#2563EB'}
+                  onBlur={e => e.target.style.borderColor = '#E5E7EB'}
+                />
+                {form.imageUrl && (
+                  <img src={form.imageUrl} alt="Preview" style={{ width: 52, height: 52, objectFit: 'cover', borderRadius: 8, border: '1px solid #E5E7EB', flexShrink: 0 }} onError={e => { e.target.style.display = 'none' }} />
                 )}
               </div>
+            </div>
 
-              <div className="product-modal-grid">
-                <div>
-                  <p className="product-modal-label">Product Name</p>
-                  <p className="product-modal-value">{selectedProduct.name}</p>
-                </div>
-                <div>
-                  <p className="product-modal-label">Price</p>
-                  <p className="product-modal-value">${selectedProduct.price}</p>
-                </div>
-                <div>
-                  <p className="product-modal-label">Discount</p>
-                  <p className="product-modal-value">
-                    {selectedProduct.discount ? `${selectedProduct.discount}%` : '0%'}
-                  </p>
-                </div>
-                <div>
-                  <p className="product-modal-label">Availability</p>
-                  <p className="product-modal-value">
-                    {selectedProduct.availability === 'available' ? 'Available' : 'Stock Out'}
-                  </p>
-                </div>
-                <div className="product-modal-wide">
-                  <p className="product-modal-label">Description</p>
-                  <p className="product-modal-value">
-                    {selectedProduct.description || 'No description'}
-                  </p>
-                </div>
-                <div className="product-modal-wide">
-                  <p className="product-modal-label">Additional Comment</p>
-                  <p className="product-modal-value">
-                    {selectedProduct.additionalComment || 'No comment'}
-                  </p>
-                </div>
-                <div className="product-modal-wide">
-                  <p className="product-modal-label">Custom Instruction</p>
-                  <p className="product-modal-value">
-                    {selectedProduct.customInstruction || 'No custom instruction'}
-                  </p>
-                </div>
-                <div className="product-modal-wide">
-                  <p className="product-modal-label">Last Updated</p>
-                  <p className="product-modal-value">{selectedProduct.savedAt}</p>
+            {/* Grid fields */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, marginBottom: 14 }}>
+              <div>
+                <label style={labelStyle}>Product Name <span style={{ color: '#EF4444' }}>*</span></label>
+                <input type="text" value={form.productName} onChange={e => updateForm('productName', e.target.value)} placeholder="e.g. Premium T-Shirt" style={inputStyle} onFocus={e => e.target.style.borderColor = '#2563EB'} onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
+              </div>
+              <div>
+                <label style={labelStyle}>Price <span style={{ color: '#EF4444' }}>*</span></label>
+                <input type="number" value={form.price} onChange={e => updateForm('price', e.target.value)} placeholder="0.00" style={inputStyle} onFocus={e => e.target.style.borderColor = '#2563EB'} onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
+              </div>
+              <div>
+                <label style={labelStyle}>Discount (%)</label>
+                <input type="number" value={form.discount} onChange={e => updateForm('discount', e.target.value)} placeholder="0" style={inputStyle} onFocus={e => e.target.style.borderColor = '#2563EB'} onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
+              </div>
+              <div>
+                <label style={labelStyle}>Availability</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {['available', 'stock-out'].map(val => (
+                    <button key={val} type="button" onClick={() => updateForm('availability', val)} style={{ flex: 1, padding: '7px 10px', fontSize: 13, fontWeight: 500, borderRadius: 8, border: '1px solid', borderColor: form.availability === val ? '#2563EB' : '#E5E7EB', color: form.availability === val ? '#2563EB' : '#6B7280', background: form.availability === val ? '#EFF6FF' : '#fff', cursor: 'pointer' }}>
+                      {val === 'available' ? 'Available' : 'Stock Out'}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
-          </article>
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={labelStyle}>Description</label>
+              <textarea value={form.description} onChange={e => updateForm('description', e.target.value)} placeholder="Describe the product…" rows={3} style={{ ...inputStyle, resize: 'vertical' }} onFocus={e => e.target.style.borderColor = '#2563EB'} onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label style={labelStyle}>Additional Comment</label>
+              <textarea value={form.additionalComment} onChange={e => updateForm('additionalComment', e.target.value)} placeholder="Any extra notes…" rows={2} style={{ ...inputStyle, resize: 'vertical' }} onFocus={e => e.target.style.borderColor = '#2563EB'} onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={labelStyle}>Custom Instruction for This Product</label>
+              <textarea value={form.customInstruction} onChange={e => updateForm('customInstruction', e.target.value)} placeholder="e.g. Always mention the warranty when asked about this product…" rows={2} style={{ ...inputStyle, resize: 'vertical' }} onFocus={e => e.target.style.borderColor = '#2563EB'} onBlur={e => e.target.style.borderColor = '#E5E7EB'} />
+            </div>
+
+            {error && <p style={{ fontSize: 13, color: '#EF4444', marginBottom: 12 }}>{error}</p>}
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              {editingProductId && (
+                <button type="button" onClick={handleCancelEdit} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 500, color: '#6B7280', background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              )}
+              <button type="button" onClick={handleSaveProduct} disabled={saving} style={{ padding: '8px 18px', fontSize: 13, fontWeight: 600, color: '#fff', background: saving ? '#93C5FD' : '#2563EB', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer' }}>
+                {saving ? 'Saving…' : editingProductId ? 'Update Product' : 'Add Product'}
+              </button>
+            </div>
+          </div>
+
+          {/* Product list */}
+          <div style={{ background: '#fff', border: '1px solid #E5E7EB', borderRadius: 12, padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Product List</h2>
+              <span style={{ fontSize: 12, color: '#9CA3AF' }}>{products.length} items</span>
+            </div>
+
+            {loadingProducts ? (
+              <p style={{ fontSize: 13, color: '#9CA3AF', padding: '12px 0' }}>Loading products…</p>
+            ) : products.length === 0 ? (
+              <p style={{ fontSize: 13, color: '#9CA3AF', padding: '12px 0' }}>No products yet. Add one above.</p>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #E5E7EB' }}>
+                      {['Image', 'Product', 'Price', 'Discount', 'Status', 'Actions'].map(h => (
+                        <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map(product => (
+                      <tr key={product._id} style={{ borderBottom: '1px solid #F3F4F6' }}>
+                        <td style={{ padding: '10px 12px' }}>
+                          {product.imageUrl ? (
+                            <img src={product.imageUrl} alt={product.name} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6, border: '1px solid #E5E7EB' }} onError={e => { e.target.style.display = 'none' }} />
+                          ) : (
+                            <div style={{ width: 40, height: 40, borderRadius: 6, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#9CA3AF' }}>No img</div>
+                          )}
+                        </td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <p style={{ fontWeight: 600, color: '#111827', marginBottom: 2 }}>{product.name}</p>
+                          <p style={{ fontSize: 12, color: '#6B7280', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.description || '—'}</p>
+                        </td>
+                        <td style={{ padding: '10px 12px', fontWeight: 600, color: '#111827', whiteSpace: 'nowrap' }}>৳{product.price}</td>
+                        <td style={{ padding: '10px 12px', color: '#6B7280' }}>{product.discount ? `${product.discount}%` : '0%'}</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 4, background: product.availability === 'available' ? '#F0FDF4' : '#FFF7ED', color: product.availability === 'available' ? '#16A34A' : '#EA580C' }}>
+                            {product.availability === 'available' ? 'Available' : 'Stock Out'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button type="button" onClick={() => setSelectedProduct(product)} style={{ fontSize: 12, fontWeight: 500, color: '#2563EB', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>View</button>
+                            <button type="button" onClick={() => handleEditProduct(product)} style={{ fontSize: 12, fontWeight: 500, color: '#374151', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>Edit</button>
+                            <button type="button" onClick={() => handleDeleteProduct(product._id)} style={{ fontSize: 12, fontWeight: 500, color: '#EF4444', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>Delete</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
-      ) : null}
-    </section>
+      )}
+
+      {/* View Modal */}
+      {selectedProduct && (
+        <div onClick={() => setSelectedProduct(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #E5E7EB' }}>
+              <h2 style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Product Details</h2>
+              <button type="button" onClick={() => setSelectedProduct(null)} style={{ background: 'none', border: 'none', fontSize: 18, color: '#6B7280', cursor: 'pointer', lineHeight: 1 }}>×</button>
+            </div>
+            <div style={{ padding: '20px' }}>
+              {selectedProduct.imageUrl && (
+                <img src={selectedProduct.imageUrl} alt={selectedProduct.name} style={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 8, border: '1px solid #E5E7EB', marginBottom: 16 }} onError={e => { e.target.style.display = 'none' }} />
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {[
+                  ['Product Name', selectedProduct.name],
+                  ['Price', `৳${selectedProduct.price}`],
+                  ['Discount', selectedProduct.discount ? `${selectedProduct.discount}%` : '0%'],
+                  ['Availability', selectedProduct.availability === 'available' ? 'Available' : 'Stock Out'],
+                ].map(([label, val]) => (
+                  <div key={label}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 3 }}>{label}</p>
+                    <p style={{ fontSize: 13, color: '#111827', fontWeight: 500 }}>{val}</p>
+                  </div>
+                ))}
+                {[
+                  ['Description', selectedProduct.description],
+                  ['Additional Comment', selectedProduct.additionalComment],
+                  ['Custom Instruction', selectedProduct.customInstruction],
+                ].map(([label, val]) => val ? (
+                  <div key={label} style={{ gridColumn: '1 / -1' }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 3 }}>{label}</p>
+                    <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{val}</p>
+                  </div>
+                ) : null)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 

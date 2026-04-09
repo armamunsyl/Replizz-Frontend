@@ -40,6 +40,13 @@ export const adminMenuItems = [
         path: '/admin/pages',
     },
     {
+        key: 'admin-payments',
+        icon: 'star',
+        label: 'Payments',
+        navigable: true,
+        path: '/admin/payments',
+    },
+    {
         key: 'admin-divider',
         isDivider: true,
     },

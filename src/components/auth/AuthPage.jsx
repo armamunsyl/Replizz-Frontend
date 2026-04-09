@@ -3,7 +3,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../../lib/firebase'
 import api from '../../lib/api'
-import './AuthPage.css'
+
+const blue = '#2563EB'
+const blueDark = '#1D4ED8'
+const border = '#E5E7EB'
+const textPrimary = '#111827'
+const textSecondary = '#4B5563'
+const textMuted = '#9CA3AF'
 
 function AuthPage({ mode = 'login' }) {
   const isRegister = mode === 'register'
@@ -20,24 +26,18 @@ function AuthPage({ mode = 'login' }) {
     if (isRegister) {
       if (!form.name || !form.email || !form.password) { setError('All fields are required.'); return }
       if (form.password !== form.confirm) { setError('Passwords do not match.'); return }
+      if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return }
     } else {
       if (!form.email || !form.password) { setError('Email and password are required.'); return }
     }
     setLoading(true)
     try {
       if (isRegister) {
-        // 1. Create in Firebase
         await createUserWithEmailAndPassword(auth, form.email, form.password)
-        // 2. Create in MongoDB Backend
         try {
-          await api.post('/api/auth/register', {
-            name: form.name,
-            email: form.email,
-            password: form.password
-          })
+          await api.post('/api/auth/register', { name: form.name, email: form.email, password: form.password })
         } catch (backendError) {
-          console.error("Backend registration failed:", backendError)
-          // Continue to overview even if backend fails, getMe will auto-create if we add that fallback
+          console.error('Backend registration failed:', backendError)
         }
       } else {
         await signInWithEmailAndPassword(auth, form.email, form.password)
@@ -50,101 +50,106 @@ function AuthPage({ mode = 'login' }) {
     }
   }
 
+  const inputStyle = {
+    width: '100%', padding: '10px 12px', fontSize: 14,
+    color: textPrimary, border: `1px solid ${border}`,
+    borderRadius: 8, outline: 'none',
+    transition: 'border-color 0.15s', background: '#fff',
+  }
+
   return (
-    <section
-      className={`auth-page anim-reveal ${isRegister ? 'auth-register' : 'auth-login'}`}
-      aria-label={isRegister ? 'Register page' : 'Login page'}
-    >
-      <div className="auth-shell anim-pop anim-delay-1">
-        <aside className="auth-side anim-slide-left">
-          <div className="auth-brand">
-            <img src="/replizz-logo.png" alt="Replizz logo" />
-            <span>Replizz</span>
-          </div>
-
-          <p className="auth-kicker">Secure Access</p>
-          <h1>{isRegister ? 'Create your workspace account' : 'Welcome back to your workspace'}</h1>
-          <p className="auth-side-text">
-            Manage inbox, products, plans, and automation from one dashboard powered by Replizz.
-          </p>
-
-          <ul className="auth-side-list">
-            <li>Real-time inbox and customer view</li>
-            <li>Product instruction and plan management</li>
-            <li>Facebook page based workflow setup</li>
-          </ul>
-        </aside>
-
-        <div className="auth-form-panel anim-slide-right anim-delay-1">
-          <Link className="auth-back-home anim-hover-lift" to="/">
-            ← Back to Home
+    <div style={{ minHeight: '100vh', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ width: '100%', maxWidth: 440 }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            <img src="/replizz-logo.png" alt="Replizz" style={{ width: 36, height: 36, borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+            <span style={{ fontSize: 20, fontWeight: 700, color: textPrimary, letterSpacing: '-0.02em' }}>Replizz</span>
           </Link>
-
-          <h2>{isRegister ? 'Create Account' : 'Sign In'}</h2>
-          <p className="auth-subtitle">
-            {isRegister
-              ? 'Enter your details to start using your workspace.'
-              : 'Use your email and password to continue.'}
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: textPrimary, marginTop: 20, marginBottom: 6 }}>
+            {isRegister ? 'Create your account' : 'Welcome back'}
+          </h1>
+          <p style={{ fontSize: 14, color: textMuted }}>
+            {isRegister ? 'Start automating your Facebook inbox today' : 'Sign in to your Replizz account'}
           </p>
+        </div>
 
-          <form
-            className="auth-form"
-            onSubmit={handleSubmit}
-          >
-            {isRegister ? (
-              <label className="auth-field">
-                <span>Full Name</span>
-                <input type="text" placeholder="Enter your full name" value={form.name} onChange={e => update('name', e.target.value)} />
-              </label>
-            ) : null}
-
-            <label className="auth-field">
-              <span>Email</span>
-              <input type="email" placeholder="Enter your email" value={form.email} onChange={e => update('email', e.target.value)} />
-            </label>
-
-            <label className="auth-field">
-              <span>Password</span>
-              <input type="password" placeholder="Enter your password" value={form.password} onChange={e => update('password', e.target.value)} />
-            </label>
-
-            {isRegister ? (
-              <label className="auth-field">
-                <span>Confirm Password</span>
-                <input type="password" placeholder="Confirm your password" value={form.confirm} onChange={e => update('confirm', e.target.value)} />
-              </label>
-            ) : null}
-
-            {isRegister ? (
-              <label className="auth-checkline">
-                <input type="checkbox" />
-                <span>I agree with Terms and Privacy Policy</span>
-              </label>
-            ) : (
-              <div className="auth-row">
-                <label className="auth-checkline">
-                  <input type="checkbox" />
-                  <span>Remember me</span>
-                </label>
-                <button type="button" className="auth-link-btn anim-hover-lift">
-                  Forgot Password?
-                </button>
+        {/* Card */}
+        <div style={{ background: '#fff', border: `1px solid ${border}`, borderRadius: 16, padding: 32, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {isRegister && (
+              <div>
+                <label htmlFor="name" style={{ display: 'block', fontSize: 13, fontWeight: 500, color: textPrimary, marginBottom: 6 }}>Full Name</label>
+                <input id="name" type="text" value={form.name} onChange={e => update('name', e.target.value)} placeholder="Enter your full name" style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = blue}
+                  onBlur={e => e.target.style.borderColor = border} />
               </div>
             )}
 
-            {error ? <p style={{ color: '#ff6b6b', fontSize: '0.82rem', margin: '0.4rem 0' }}>{error}</p> : null}
-            <button className="auth-submit anim-hover-lift" type="submit" disabled={loading}>
+            <div>
+              <label htmlFor="auth-email" style={{ display: 'block', fontSize: 13, fontWeight: 500, color: textPrimary, marginBottom: 6 }}>Email address</label>
+              <input id="auth-email" type="email" value={form.email} onChange={e => update('email', e.target.value)} placeholder="you@example.com" style={inputStyle}
+                onFocus={e => e.target.style.borderColor = blue}
+                onBlur={e => e.target.style.borderColor = border} />
+            </div>
+
+            <div>
+              <label htmlFor="auth-password" style={{ display: 'block', fontSize: 13, fontWeight: 500, color: textPrimary, marginBottom: 6 }}>Password</label>
+              <input id="auth-password" type="password" value={form.password} onChange={e => update('password', e.target.value)} placeholder={isRegister ? 'Minimum 6 characters' : 'Enter your password'} style={inputStyle}
+                onFocus={e => e.target.style.borderColor = blue}
+                onBlur={e => e.target.style.borderColor = border} />
+            </div>
+
+            {isRegister && (
+              <div>
+                <label htmlFor="auth-confirm" style={{ display: 'block', fontSize: 13, fontWeight: 500, color: textPrimary, marginBottom: 6 }}>Confirm Password</label>
+                <input id="auth-confirm" type="password" value={form.confirm} onChange={e => update('confirm', e.target.value)} placeholder="Repeat your password" style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = blue}
+                  onBlur={e => e.target.style.borderColor = border} />
+              </div>
+            )}
+
+            {isRegister && (
+              <p style={{ fontSize: 12, color: textMuted, lineHeight: 1.6 }}>
+                By creating an account, you agree to our{' '}
+                <Link to="/terms-of-service" style={{ color: blue }}>Terms of Service</Link> and{' '}
+                <Link to="/privacy-policy" style={{ color: blue }}>Privacy Policy</Link>.
+              </p>
+            )}
+
+            {error && (
+              <p style={{ fontSize: 13, color: '#EF4444', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '8px 12px', margin: 0 }}>{error}</p>
+            )}
+
+            <button
+              type="submit" disabled={loading}
+              style={{ width: '100%', padding: '11px', fontSize: 15, fontWeight: 600, color: '#fff', background: loading ? '#93C5FD' : blue, border: 'none', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer', transition: 'background 0.15s' }}
+              onMouseEnter={e => { if (!loading) e.target.style.background = blueDark }}
+              onMouseLeave={e => { if (!loading) e.target.style.background = blue }}
+            >
               {loading ? 'Please wait…' : isRegister ? 'Create Account' : 'Sign In'}
             </button>
           </form>
 
-          <p className="auth-switch">
-            {isRegister ? 'Already have an account?' : 'Don’t have an account?'}{' '}
-            <Link to={isRegister ? '/login' : '/register'}>{isRegister ? 'Sign In' : 'Register'}</Link>
+          <div style={{ position: 'relative', margin: '20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ flex: 1, height: 1, background: border }} />
+            <span style={{ fontSize: 12, color: textMuted, whiteSpace: 'nowrap' }}>or</span>
+            <div style={{ flex: 1, height: 1, background: border }} />
+          </div>
+
+          <p style={{ textAlign: 'center', fontSize: 14, color: textSecondary }}>
+            {isRegister ? 'Already have an account? ' : "Don't have an account? "}
+            <Link to={isRegister ? '/login' : '/register'} style={{ color: blue, fontWeight: 600, textDecoration: 'none' }}>
+              {isRegister ? 'Sign In' : 'Create one free'}
+            </Link>
           </p>
         </div>
+
+        <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: textMuted }}>
+          <Link to="/" style={{ color: textMuted, textDecoration: 'none' }}>← Back to home</Link>
+        </p>
       </div>
-    </section>
+    </div>
   )
 }
 

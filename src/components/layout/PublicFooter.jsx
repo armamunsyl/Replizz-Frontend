@@ -1,161 +1,199 @@
-import { motion as _motion } from 'framer-motion'
-import { revealItem, sectionReveal, staggerParent, subtleHoverLift } from '../home/motionPresets'
+import { Link } from 'react-router-dom'
 
-const footerColumns = [
+const cols = [
   {
-    title: 'Products',
-    links: ['Analytics Platform', 'Insights Engine', 'Reporting Suite', 'Data Visualization'],
-  },
-  {
-    title: 'Solutions',
-    links: ['For Startups', 'For Enterprise', 'For Marketing', 'For Sales'],
+    title: 'Product',
+    links: [
+      { label: 'Features', href: '#features' },
+      { label: 'How it works', href: '#how-it-works' },
+      { label: 'Pricing', href: '#pricing' },
+      { label: 'Changelog', href: '#' },
+    ],
   },
   {
     title: 'Resources',
-    links: ['Blog', 'Case Studies', 'Documentation', 'API Reference'],
+    links: [
+      { label: 'Documentation', href: '#' },
+      { label: 'Help Center', href: '#' },
+      { label: 'API Reference', href: '#' },
+      { label: 'Status', href: '#' },
+    ],
   },
   {
     title: 'Company',
-    links: ['About Us', 'Careers', 'Contact', 'Partners'],
+    links: [
+      { label: 'About', href: '#' },
+      { label: 'Blog', href: '#' },
+      { label: 'Careers', href: '#' },
+      { label: 'Contact', href: '#' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { label: 'Privacy Policy', href: '/privacy-policy' },
+      { label: 'Terms of Service', href: '/terms-of-service' },
+      { label: 'Cookie Policy', href: '#' },
+      { label: 'Security', href: '#' },
+    ],
   },
 ]
 
-const policyLinks = ['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'Security']
+/* Social icon SVGs */
+const XIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.737-8.835L1.254 2.25H8.08l4.253 5.622 5.91-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+)
+
+const LinkedInIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+  </svg>
+)
+
+const FacebookIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+)
+
+const socials = [
+  { label: 'X (Twitter)', Icon: XIcon, href: '#' },
+  { label: 'LinkedIn', Icon: LinkedInIcon, href: '#' },
+  { label: 'Facebook', Icon: FacebookIcon, href: '#' },
+]
+
+function SocialBtn({ label, Icon, href }) {
+  return (
+    <a href={href} aria-label={label} style={{
+      width: 38, height: 38, borderRadius: 10,
+      border: '1px solid rgba(255,255,255,0.10)',
+      background: 'rgba(255,255,255,0.04)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: 'rgba(255,255,255,0.40)', textDecoration: 'none',
+      transition: 'border-color 0.15s, color 0.15s, background 0.15s',
+    }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(37,99,235,0.5)'; e.currentTarget.style.color = '#60A5FA'; e.currentTarget.style.background = 'rgba(37,99,235,0.10)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'; e.currentTarget.style.color = 'rgba(255,255,255,0.40)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+    >
+      <Icon />
+    </a>
+  )
+}
+
+function FooterLink({ label, href }) {
+  const isExternal = href.startsWith('/')
+  const El = isExternal ? Link : 'a'
+  return (
+    <li>
+      <El to={isExternal ? href : undefined} href={!isExternal ? href : undefined}
+        style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.42)', textDecoration: 'none', transition: 'color 0.15s', display: 'inline-block' }}
+        onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.85)'}
+        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.42)'}>
+        {label}
+      </El>
+    </li>
+  )
+}
 
 function PublicFooter() {
   return (
-    <_motion.footer
-      className="bg-[#060910] px-0 pt-2 pb-6 mt-10"
-      id="contact"
-      variants={sectionReveal}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.2 }}
-    >
-      <_motion.div
-        className="mx-auto w-[min(1230px,calc(100%-2rem))] overflow-hidden rounded-[26px] border border-[rgba(162,179,232,0.22)] text-[#e7ebf5] shadow-[0_26px_52px_rgba(8,11,25,0.48)] max-[900px]:w-[calc(100%-1rem)] max-[900px]:rounded-[16px]"
-        style={{
-          background:
-            'radial-gradient(420px 220px at 12% 12%, rgba(143, 99, 255, 0.26), rgba(143, 99, 255, 0) 72%), radial-gradient(420px 220px at 88% 88%, rgba(99, 151, 255, 0.2), rgba(99, 151, 255, 0) 74%), linear-gradient(180deg, #121628 0%, #101422 100%)',
-        }}
-        variants={revealItem}
-        whileHover={subtleHoverLift}
-      >
-        <_motion.section
-          className="border-b border-[rgba(255,255,255,0.08)] px-5 pt-6 pb-4 text-center max-[900px]:px-3"
-          variants={staggerParent(0.08, 0.06)}
-        >
-          <_motion.h2 variants={revealItem} className="text-[1.75rem] leading-[1.1] font-extrabold text-[#f4f7ff] max-[900px]:text-[1.3rem]">
-            Continue Your <span className="text-[#9b7dff]">Success Story</span>
-          </_motion.h2>
-          <_motion.p variants={revealItem} className="mx-auto mt-2 max-w-[650px] text-[0.68rem] leading-[1.55] text-[#a9b3cc] max-[900px]:max-w-[95%] max-[900px]:text-[0.62rem]">
-            Join 10,000+ teams who get weekly insights on turning data into decisions. Be the first
-            to know about new chapters in product innovation.
-          </_motion.p>
+    <footer style={{ background: '#0E0620', position: 'relative', overflow: 'hidden' }}>
 
-          <_motion.form
-            variants={revealItem}
-            className="mx-auto mt-3 grid w-[min(460px,100%)] grid-cols-[minmax(0,1fr)_auto] gap-2 max-[900px]:grid-cols-1"
-            onSubmit={(event) => {
-              event.preventDefault()
-            }}
-          >
-            <input
-              className="min-h-10 rounded-[9px] border border-[rgba(156,171,216,0.3)] bg-[rgba(30,35,53,0.94)] px-4 text-[0.9rem] text-[#edf1fb] placeholder:text-[#8d97b3] focus:border-[rgba(188,198,236,0.5)] focus:outline-none"
-              type="email"
-              placeholder="your@email.com"
-              aria-label="Email address"
-            />
-            <button
-              className="min-h-10 rounded-xl border-0 bg-gradient-to-br from-[#8e71ff] to-[#6f95ff] px-7 text-[0.9rem] font-bold text-white shadow-[0_12px_20px_rgba(112,108,244,0.35)] transition-transform duration-300 hover:-translate-y-0.5"
-              type="submit"
-            >
-              Subscribe
-            </button>
-          </_motion.form>
+      {/* Main content area */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '56px 28px 0', position: 'relative', zIndex: 1 }}>
 
-          <_motion.small variants={revealItem} className="mt-2 block text-[0.56rem] text-[#8e98b5]">
-            No spam, just stories worth telling. Unsubscribe anytime.
-          </_motion.small>
-        </_motion.section>
+        {/* Top grid: brand + columns */}
+        <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 64, marginBottom: 56, alignItems: 'start' }} className="rplz-footer-top">
 
-        <_motion.section
-          className="grid grid-cols-[minmax(220px,0.95fr)_minmax(0,2fr)] gap-6 border-b border-[rgba(255,255,255,0.08)] px-5 py-4 max-[900px]:grid-cols-1 max-[900px]:px-3"
-          variants={staggerParent(0.08, 0.06)}
-        >
-          <_motion.article variants={revealItem}>
-            <div className="inline-flex items-center gap-2">
-              <img className="h-6 w-6 rounded-lg object-cover" src="/replizz-logo.png" alt="Replizz logo" />
-              <strong className="text-[2rem] font-extrabold tracking-[-0.02em] text-[#f3f5ff] max-[900px]:text-[1.5rem]">
-                Replizz
-              </strong>
+          {/* Brand column */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+              <img src="/replizz-logo.png" alt="Replizz" style={{ width: 34, height: 34, borderRadius: 9, display: 'block' }} />
+              <span style={{ fontSize: 18, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>Replizz</span>
             </div>
-
-            <p className="mt-3 max-w-[250px] text-[0.68rem] leading-[1.55] text-[#8e98b5] max-[900px]:max-w-full">
-              Empowering businesses to transform data into compelling narratives. Every number tells
-              a story we help you tell yours.
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.42)', lineHeight: 1.78, maxWidth: 220, marginBottom: 28 }}>
+              AI-powered Facebook inbox automation for growing businesses.
             </p>
 
-            <div className="mt-3 flex items-center gap-2">
-              <a
-                className="grid h-7 w-7 place-items-center rounded-md border border-[rgba(163,176,220,0.34)] text-[0.68rem] font-bold text-[#dce3f7] no-underline transition-transform duration-300 hover:-translate-y-0.5"
-                href="/"
-                aria-label="Twitter"
-              >
-                𝕏
-              </a>
-              <a
-                className="grid h-7 w-7 place-items-center rounded-md border border-[rgba(163,176,220,0.34)] text-[0.68rem] font-bold text-[#dce3f7] no-underline transition-transform duration-300 hover:-translate-y-0.5"
-                href="/"
-                aria-label="LinkedIn"
-              >
-                in
-              </a>
-              <a
-                className="grid h-7 w-7 place-items-center rounded-md border border-[rgba(163,176,220,0.34)] text-[0.68rem] font-bold text-[#dce3f7] no-underline transition-transform duration-300 hover:-translate-y-0.5"
-                href="/"
-                aria-label="GitHub"
-              >
-                gh
+            {/* Contact */}
+            <div style={{ marginBottom: 28 }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Get in touch</p>
+              <a href="mailto:hello@replizz.com"
+                style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.5)', textDecoration: 'none', display: 'block', marginBottom: 4, transition: 'color 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}>
+                hello@replizz.com
               </a>
             </div>
-          </_motion.article>
 
-          <_motion.div className="grid grid-cols-4 gap-4 max-[900px]:grid-cols-2" variants={staggerParent(0.06, 0.04)}>
-            {footerColumns.map((column) => (
-              <_motion.article key={column.title} variants={revealItem}>
-                <h3 className="text-[0.86rem] font-bold text-[#f2f5ff]">{column.title}</h3>
-                <ul className="mt-2 grid gap-1">
-                  {column.links.map((link) => (
-                    <li key={link}>
-                      <a className="text-[0.66rem] text-[#8e98b5] no-underline transition-colors duration-200 hover:text-[#d9e2fa]" href="/">
-                        {link}
-                      </a>
-                    </li>
-                  ))}
+            {/* Social icons */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              {socials.map(s => <SocialBtn key={s.label} {...s} />)}
+            </div>
+          </div>
+
+          {/* Link columns */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }} className="rplz-footer-cols">
+            {cols.map(col => (
+              <div key={col.title}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.30)', textTransform: 'uppercase', letterSpacing: '0.09em', marginBottom: 16 }}>
+                  {col.title}
+                </p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 11 }}>
+                  {col.links.map(link => <FooterLink key={link.label} {...link} />)}
                 </ul>
-              </_motion.article>
-            ))}
-          </_motion.div>
-        </_motion.section>
-
-        <_motion.section
-          className="flex items-center justify-between gap-3 px-5 py-3 max-[900px]:flex-col max-[900px]:items-start max-[900px]:px-3"
-          variants={revealItem}
-        >
-          <p className="text-[0.58rem] text-[#7f8bab]">
-            © {new Date().getFullYear()} Replizz. Every great story starts with data.
-          </p>
-          <div className="flex flex-wrap items-center justify-end gap-3 max-[900px]:justify-start">
-            {policyLinks.map((item) => (
-              <a className="text-[0.58rem] text-[#7f8bab] no-underline transition-colors duration-200 hover:text-[#dce3f6]" key={item} href="/">
-                {item}
-              </a>
+              </div>
             ))}
           </div>
-        </_motion.section>
-      </_motion.div>
-    </_motion.footer>
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
+
+        {/* Bottom bar */}
+        <div style={{ padding: '22px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <p style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.24)' }}>
+            &copy; {new Date().getFullYear()} Replizz. All rights reserved.
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <Link to="/terms-of-service" style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.28)', textDecoration: 'none', transition: 'color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.28)'}>Terms &amp; Conditions</Link>
+            <Link to="/privacy-policy" style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.28)', textDecoration: 'none', transition: 'color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.28)'}>Privacy Policy</Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Large brand mark — Studio-inspired */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 0, overflow: 'hidden', position: 'relative', zIndex: 1, paddingTop: 8 }}>
+        {/* Real logo mark */}
+        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', paddingLeft: 'max(28px, calc((100vw - 1200px) / 2 + 28px))' }}>
+          <img src="/replizz-logo.png" alt="Replizz" style={{ width: 'clamp(52px, 9vw, 112px)', height: 'clamp(52px, 9vw, 112px)', borderRadius: 'clamp(10px, 1.8vw, 22px)', display: 'block', flexShrink: 0 }} />
+        </div>
+
+        {/* Brand name */}
+        <div style={{ flex: 1, overflow: 'hidden' }}>
+          <span style={{
+            display: 'block',
+            fontSize: 'clamp(64px, 12vw, 152px)',
+            fontWeight: 900,
+            letterSpacing: '-0.04em',
+            color: '#fff',
+            lineHeight: 1,
+            whiteSpace: 'nowrap',
+            paddingLeft: '0.18em',
+            userSelect: 'none',
+          }}>
+            REPLIZZ
+          </span>
+        </div>
+      </div>
+
+    </footer>
   )
 }
 

@@ -1,58 +1,60 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react'
 
-const PrivacyPolicy = () => {
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
+const sections = [
+  {
+    title: '1. Introduction',
+    content: 'Welcome to Replizz. We respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information when you use our Facebook Messenger automation platform.',
+  },
+  {
+    title: '2. Information We Collect',
+    content: 'We collect information you provide directly, including your name, email address, and Facebook Page credentials. We also collect usage data such as message counts, conversation logs, and AI token usage to operate and improve our services.',
+  },
+  {
+    title: '3. How We Use Your Information',
+    content: 'We use your information to provide and maintain the Replizz platform, process AI replies on your behalf, send service-related communications, and improve our product. We do not sell your personal data to third parties.',
+  },
+  {
+    title: '4. Facebook Data',
+    content: 'Replizz integrates with the Facebook Messenger API. When you connect a Facebook Page, we receive access to messages sent to that page. This data is used solely to generate and deliver AI responses. We comply with Facebook Platform Policies and Meta\'s data use requirements.',
+  },
+  {
+    title: '5. Data Security',
+    content: 'We implement industry-standard security measures including encrypted connections (TLS), secure token storage, and access controls. However, no method of transmission over the Internet is 100% secure.',
+  },
+  {
+    title: '6. Data Retention',
+    content: 'We retain conversation and analytics data for as long as your account is active or as needed to provide our services. You may request deletion of your data at any time by contacting us.',
+  },
+  {
+    title: '7. Your Rights',
+    content: 'You have the right to access, update, or delete your personal information. You may also disconnect your Facebook Page at any time from within the Replizz dashboard, which will stop AI processing for that page.',
+  },
+  {
+    title: '8. Contact Us',
+    content: 'If you have any questions about this Privacy Policy, please contact us at privacy@replizz.com.',
+  },
+]
 
-    return (
-        <div style={{ padding: '6rem 2rem 4rem', maxWidth: '800px', margin: '0 auto', color: '#e8ebf7', lineHeight: '1.6' }}>
-            <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#fff' }}>Privacy Policy</h1>
-            <p style={{ color: '#a0aec0', marginBottom: '2rem' }}>Last updated: March 2026</p>
+function PrivacyPolicy() {
+  useEffect(() => { window.scrollTo(0, 0) }, [])
 
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#8b5cf6' }}>1. Introduction</h2>
-                <p style={{ marginBottom: '1rem' }}>
-                    Welcome to Replizz. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.
-                </p>
-            </section>
+  return (
+    <div style={{ padding: '80px 24px 64px', maxWidth: 760, margin: '0 auto' }}>
+      <div style={{ marginBottom: 40 }}>
+        <h1 style={{ fontSize: 32, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em', marginBottom: 8 }}>Privacy Policy</h1>
+        <p style={{ fontSize: 14, color: '#9CA3AF' }}>Last updated: March 2026</p>
+      </div>
 
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#8b5cf6' }}>2. Data We Collect</h2>
-                <p style={{ marginBottom: '1rem' }}>We may collect, use, store and transfer different kinds of personal data about you which we have grouped together as follows:</p>
-                <ul style={{ paddingLeft: '1.5rem', marginBottom: '1rem' }}>
-                    <li style={{ marginBottom: '0.5rem' }}><strong>Identity Data:</strong> includes first name, last name, username or similar identifier.</li>
-                    <li style={{ marginBottom: '0.5rem' }}><strong>Contact Data:</strong> includes email address and telephone numbers.</li>
-                    <li style={{ marginBottom: '0.5rem' }}><strong>Technical Data:</strong> includes internet protocol (IP) address, browser type and version, time zone setting and location.</li>
-                    <li style={{ marginBottom: '0.5rem' }}><strong>Facebook Page Data:</strong> includes page IDs, access tokens, and messages managed by our AI bot on your behalf.</li>
-                </ul>
-            </section>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+        {sections.map(section => (
+          <section key={section.title}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 8 }}>{section.title}</h2>
+            <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.75 }}>{section.content}</p>
+          </section>
+        ))}
+      </div>
+    </div>
+  )
+}
 
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#8b5cf6' }}>3. How We Use Your Data</h2>
-                <p style={{ marginBottom: '1rem' }}>We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:</p>
-                <ul style={{ paddingLeft: '1.5rem', marginBottom: '1rem' }}>
-                    <li style={{ marginBottom: '0.5rem' }}>Where we need to perform the contract we are about to enter into or have entered into with you.</li>
-                    <li style={{ marginBottom: '0.5rem' }}>To process and deliver AI-generated responses to your Facebook Page messages.</li>
-                    <li style={{ marginBottom: '0.5rem' }}>Where it is necessary for our legitimate interests (or those of a third party) and your interests and fundamental rights do not override those interests.</li>
-                </ul>
-            </section>
-
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#8b5cf6' }}>4. Data Security</h2>
-                <p style={{ marginBottom: '1rem' }}>
-                    We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used or accessed in an unauthorized way, altered or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors and other third parties who have a business need to know.
-                </p>
-            </section>
-
-            <section style={{ marginBottom: '2rem' }}>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#8b5cf6' }}>5. Contact Us</h2>
-                <p style={{ marginBottom: '1rem' }}>
-                    If you have any questions about this privacy policy or our privacy practices, please contact us at support@replizz.com.
-                </p>
-            </section>
-        </div>
-    );
-};
-
-export default PrivacyPolicy;
+export default PrivacyPolicy

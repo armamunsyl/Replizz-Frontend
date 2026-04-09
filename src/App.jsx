@@ -19,6 +19,9 @@ import AdminUsersView from './components/admin/AdminUsersView'
 import AdminAnalyticsView from './components/admin/AdminAnalyticsView'
 import AdminReportsView from './components/admin/AdminReportsView'
 import AdminPagesView from './components/admin/AdminPagesView'
+import AdminPaymentsView from './components/admin/AdminPaymentsView'
+import PaymentPage from './components/plan/PaymentPage'
+import BillingView from './components/plan/BillingView'
 import { menuItems } from './data/dashboardData'
 import { adminMenuItems } from './data/adminData'
 import { useAuth } from './context/AuthContext'
@@ -77,27 +80,29 @@ function OAuthCallback() {
 
   if (error) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', flexDirection: 'column', gap: '1.2rem', background: '#1a1e31', color: '#e8ebf7', padding: '2rem', textAlign: 'center' }}>
-        <div style={{ fontSize: '2.5rem' }}>⚠️</div>
-        <p style={{ fontSize: '1rem', fontWeight: 700, color: '#f87171' }}>Page Connect হয়নি</p>
-        <p style={{ fontSize: '0.82rem', opacity: 0.7, maxWidth: 380, whiteSpace: 'pre-line', lineHeight: 1.7 }}>
-          {errorMessages[error] || 'অজানা error। আবার try করুন।'}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', flexDirection: 'column', gap: 16, background: '#F9FAFB', padding: '2rem', textAlign: 'center' }}>
+        <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <p style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>Page connection failed</p>
+        <p style={{ fontSize: 13, color: '#6B7280', maxWidth: 360, lineHeight: 1.6, whiteSpace: 'pre-line' }}>
+          {errorMessages[error] || 'An unknown error occurred. Please try again.'}
         </p>
         <button
           type="button"
           onClick={() => navigate('/overview', { replace: true })}
-          style={{ marginTop: '0.5rem', padding: '0.6rem 1.5rem', borderRadius: 10, border: 'none', background: 'linear-gradient(135deg,#8b5cf6,#3b82f6)', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: '0.82rem' }}
+          style={{ marginTop: 8, padding: '9px 20px', borderRadius: 8, border: 'none', background: '#2563EB', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 13 }}
         >
-          Dashboard-এ ফিরুন
+          Return to Dashboard
         </button>
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', flexDirection: 'column', gap: '1rem', background: '#1a1e31', color: '#e8ebf7' }}>
-      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(139,92,246,0.3)', borderTopColor: '#8b5cf6', animation: 'spin 0.8s linear infinite' }} />
-      <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>{connected ? `${connected}টি page connect হয়েছে…` : 'Connecting your page…'}</p>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', flexDirection: 'column', gap: 12, background: '#F9FAFB' }}>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E5E7EB', borderTopColor: '#2563EB', animation: 'spin 0.8s linear infinite' }} />
+      <p style={{ fontSize: 13, color: '#6B7280' }}>{connected ? `${connected} page(s) connecting…` : 'Connecting your page…'}</p>
     </div>
   )
 }
@@ -146,6 +151,7 @@ function App() {
         <Route path="/login-page" element={<Navigate to="/login" replace />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/payment" element={<RequireAuth><PaymentPage /></RequireAuth>} />
       </Route>
 
       <Route
@@ -163,7 +169,8 @@ function App() {
         <Route path="/inbox" element={<InboxView />} />
         <Route path="/settings" element={<SettingsView />} />
         <Route path="/your-product" element={<ProductView />} />
-        <Route path="/my-plan" element={<PlanView packages={[]} />} />
+        <Route path="/my-plan" element={<PlanView />} />
+        <Route path="/billing" element={<BillingView />} />
         {/* Facebook OAuth callback — backend redirects here after saving pages */}
         <Route path="/pages" element={<OAuthCallback />} />
       </Route>
@@ -185,6 +192,7 @@ function App() {
         <Route path="/admin/analytics" element={<AdminAnalyticsView />} />
         <Route path="/admin/reports" element={<AdminReportsView />} />
         <Route path="/admin/pages" element={<AdminPagesView />} />
+        <Route path="/admin/payments" element={<AdminPaymentsView />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

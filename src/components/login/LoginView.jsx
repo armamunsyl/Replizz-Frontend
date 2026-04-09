@@ -1,10 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../../lib/firebase'
-import './LoginView.css'
 
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max)
+const blue = '#2563EB'
+const blueDark = '#1D4ED8'
+const border = '#E5E7EB'
+const textPrimary = '#111827'
+const textSecondary = '#4B5563'
+const textMuted = '#9CA3AF'
 
 function LoginView() {
   const navigate = useNavigate()
@@ -12,98 +16,11 @@ function LoginView() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const shellRef = useRef(null)
-  const headRef = useRef(null)
-  const targetPoseRef = useRef({
-    lookX: 0,
-    lookY: 0,
-    headRotation: 0,
-    bodyX: 0,
-    bodyY: 0,
-    bodyRotation: 0,
-  })
-  const currentPoseRef = useRef({
-    lookX: 0,
-    lookY: 0,
-    headRotation: 0,
-    bodyX: 0,
-    bodyY: 0,
-    bodyRotation: 0,
-  })
-
-  useEffect(() => {
-    let rafId = 0
-
-    const animate = () => {
-      const current = currentPoseRef.current
-      const target = targetPoseRef.current
-
-      current.lookX += (target.lookX - current.lookX) * 0.14
-      current.lookY += (target.lookY - current.lookY) * 0.14
-      current.headRotation += (target.headRotation - current.headRotation) * 0.12
-      current.bodyX += (target.bodyX - current.bodyX) * 0.12
-      current.bodyY += (target.bodyY - current.bodyY) * 0.12
-      current.bodyRotation += (target.bodyRotation - current.bodyRotation) * 0.11
-
-      if (shellRef.current) {
-        shellRef.current.style.setProperty('--look-x', `${current.lookX.toFixed(2)}px`)
-        shellRef.current.style.setProperty('--look-y', `${current.lookY.toFixed(2)}px`)
-        shellRef.current.style.setProperty('--head-rot', `${current.headRotation.toFixed(2)}deg`)
-        shellRef.current.style.setProperty('--body-x', `${current.bodyX.toFixed(2)}px`)
-        shellRef.current.style.setProperty('--body-y', `${current.bodyY.toFixed(2)}px`)
-        shellRef.current.style.setProperty('--body-rot', `${current.bodyRotation.toFixed(2)}deg`)
-      }
-
-      rafId = window.requestAnimationFrame(animate)
-    }
-
-    rafId = window.requestAnimationFrame(animate)
-
-    return () => {
-      window.cancelAnimationFrame(rafId)
-    }
-  }, [])
-
-  const updateTargetFromPointer = (clientX, clientY) => {
-    if (!headRef.current) {
-      return
-    }
-
-    const rect = headRef.current.getBoundingClientRect()
-    const centerX = rect.left + rect.width * 0.5
-    const centerY = rect.top + rect.height * 0.44
-
-    const dx = (clientX - centerX) / rect.width
-    const dy = (clientY - centerY) / rect.height
-
-    targetPoseRef.current = {
-      lookX: clamp(dx * 14, -10, 10),
-      lookY: clamp(dy * 10, -7, 7),
-      headRotation: clamp(dx * 18, -12, 12),
-      bodyX: clamp(dx * 12, -9, 9),
-      bodyY: clamp(dy * 8, -6, 6),
-      bodyRotation: clamp(dx * 10, -7, 7),
-    }
-  }
-
-  const resetTarget = () => {
-    targetPoseRef.current = {
-      lookX: 0,
-      lookY: 0,
-      headRotation: 0,
-      bodyX: 0,
-      bodyY: 0,
-      bodyRotation: 0,
-    }
-  }
 
   const handleLogin = async (e) => {
     e.preventDefault()
     setError('')
-    if (!email || !password) {
-      setError('Please enter your email and password.')
-      return
-    }
+    if (!email || !password) { setError('Please enter your email and password.'); return }
     setLoading(true)
     try {
       await signInWithEmailAndPassword(auth, email, password)
@@ -116,93 +33,77 @@ function LoginView() {
   }
 
   return (
-    <section className="workspace login-view anim-reveal" aria-label="Interactive login demo">
-      <div
-        ref={shellRef}
-        className="login-shell anim-pop anim-delay-1"
-        onMouseMove={(event) => updateTargetFromPointer(event.clientX, event.clientY)}
-        onMouseLeave={resetTarget}
-        onTouchMove={(event) => {
-          const touch = event.touches[0]
-          if (touch) {
-            updateTargetFromPointer(touch.clientX, touch.clientY)
-          }
-        }}
-        onTouchEnd={resetTarget}
-      >
-        <div className="login-frame">
-          <div className="login-card">
-            <section className="login-visual anim-slide-left" aria-label="Interactive mascot panel">
-              <div className="mascot-stage">
-                <div className="mascot" ref={headRef}>
-                  <div className="mascot-ear mascot-ear-left" />
-                  <div className="mascot-ear mascot-ear-right" />
-                  <div className="mascot-head">
-                    <div className="mascot-eye mascot-eye-left">
-                      <span className="mascot-pupil" />
-                    </div>
-                    <div className="mascot-eye mascot-eye-right">
-                      <span className="mascot-pupil" />
-                    </div>
-                    <span className="mascot-mouth" />
-                  </div>
-                  <div className="mascot-body" />
-                  <div className="mascot-arm mascot-arm-left" />
-                  <div className="mascot-arm mascot-arm-right" />
-                </div>
-              </div>
-              <p className="login-tagline">EXPLORE. LEARN. GROW.</p>
-            </section>
-
-            <section className="login-form-panel anim-slide-right anim-delay-1" aria-label="Login form">
-              <div className="login-form-brand">
-                <img src="/replizz-logo.png" alt="Replizz" />
-                <p>REPLIZZ</p>
-              </div>
-
-              <h1>WELCOME BACK</h1>
-              <p className="login-subtitle">Enter your email and password to access your account</p>
-
-              <form className="login-form" onSubmit={handleLogin}>
-                <label className="login-label" htmlFor="email">
-                  Email
-                </label>
-                <input id="email" type="email" className="login-input" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
-
-                <label className="login-label" htmlFor="password">
-                  Password
-                </label>
-                <input id="password" type="password" className="login-input" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
-
-                <div className="login-row">
-                  <label className="remember-me">
-                    <input type="checkbox" />
-                    <span>Remember me</span>
-                  </label>
-                  <button type="button" className="link-button">
-                    Forgot Password
-                  </button>
-                </div>
-
-                {error ? <p style={{ color: '#ff6b6b', fontSize: '0.82rem', margin: '0 0 0.5rem' }}>{error}</p> : null}
-                <button type="submit" className="sign-in-button anim-hover-lift" disabled={loading}>
-                  {loading ? 'Signing in…' : 'Sign In'}
-                </button>
-
-                <button type="button" className="google-button anim-hover-lift">
-                  <span>G</span>
-                  <span>Sign in with Google</span>
-                </button>
-              </form>
-
-              <p className="signup-text">
-                Don&apos;t have an account? <Link to="/register">Sign up</Link>
-              </p>
-            </section>
-          </div>
+    <div style={{ minHeight: '100vh', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ width: '100%', maxWidth: 440 }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            <img src="/replizz-logo.png" alt="Replizz" style={{ width: 36, height: 36, borderRadius: 8 }} onError={e => e.target.style.display = 'none'} />
+            <span style={{ fontSize: 20, fontWeight: 700, color: textPrimary, letterSpacing: '-0.02em' }}>Replizz</span>
+          </Link>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: textPrimary, marginTop: 20, marginBottom: 6 }}>Welcome back</h1>
+          <p style={{ fontSize: 14, color: textMuted }}>Sign in to your Replizz account</p>
         </div>
+
+        {/* Card */}
+        <div style={{ background: '#fff', border: `1px solid ${border}`, borderRadius: 16, padding: 32, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div>
+              <label htmlFor="email" style={{ display: 'block', fontSize: 13, fontWeight: 500, color: textPrimary, marginBottom: 6 }}>Email address</label>
+              <input
+                id="email" type="email"
+                value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                style={{ width: '100%', padding: '10px 12px', fontSize: 14, color: textPrimary, border: `1px solid ${border}`, borderRadius: 8, outline: 'none', transition: 'border-color 0.15s', background: '#fff' }}
+                onFocus={e => e.target.style.borderColor = blue}
+                onBlur={e => e.target.style.borderColor = border}
+              />
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label htmlFor="password" style={{ fontSize: 13, fontWeight: 500, color: textPrimary }}>Password</label>
+                <button type="button" style={{ background: 'none', border: 'none', fontSize: 13, color: blue, cursor: 'pointer', padding: 0 }}>Forgot password?</button>
+              </div>
+              <input
+                id="password" type="password"
+                value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                style={{ width: '100%', padding: '10px 12px', fontSize: 14, color: textPrimary, border: `1px solid ${border}`, borderRadius: 8, outline: 'none', transition: 'border-color 0.15s', background: '#fff' }}
+                onFocus={e => e.target.style.borderColor = blue}
+                onBlur={e => e.target.style.borderColor = border}
+              />
+            </div>
+
+            {error && <p style={{ fontSize: 13, color: '#EF4444', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 8, padding: '8px 12px', margin: 0 }}>{error}</p>}
+
+            <button
+              type="submit" disabled={loading}
+              style={{ width: '100%', padding: '11px', fontSize: 15, fontWeight: 600, color: '#fff', background: loading ? '#93C5FD' : blue, border: 'none', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer', transition: 'background 0.15s' }}
+              onMouseEnter={e => { if (!loading) e.target.style.background = blueDark }}
+              onMouseLeave={e => { if (!loading) e.target.style.background = blue }}
+            >
+              {loading ? 'Signing in…' : 'Sign In'}
+            </button>
+          </form>
+
+          <div style={{ position: 'relative', margin: '20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ flex: 1, height: 1, background: border }} />
+            <span style={{ fontSize: 12, color: textMuted, whiteSpace: 'nowrap' }}>or</span>
+            <div style={{ flex: 1, height: 1, background: border }} />
+          </div>
+
+          <p style={{ textAlign: 'center', fontSize: 14, color: textSecondary }}>
+            Don't have an account?{' '}
+            <Link to="/register" style={{ color: blue, fontWeight: 600, textDecoration: 'none' }}>Create one free</Link>
+          </p>
+        </div>
+
+        <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: textMuted }}>
+          <Link to="/" style={{ color: textMuted, textDecoration: 'none' }}>← Back to home</Link>
+        </p>
       </div>
-    </section>
+    </div>
   )
 }
 

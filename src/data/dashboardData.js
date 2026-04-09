@@ -10,13 +10,7 @@ export const menuItems = [
     path: '/your-product',
   },
   { key: 'my-plan', icon: 'star', label: 'My Plan', navigable: true, path: '/my-plan' },
-  {
-    key: 'login-page',
-    icon: 'checkCircle',
-    label: 'Login Page',
-    navigable: true,
-    path: '/login',
-  },
+  { key: 'billing', icon: 'box', label: 'Billing', navigable: true, path: '/billing' },
   { key: 'blocked', icon: 'ban', label: 'Blocked', badge: 'PRO' },
   { key: 'trash', icon: 'trash', label: 'Trash' },
 ]

@@ -18,17 +18,12 @@ export function PageProvider({ children }) {
             const list = data.data || []
             setPages(list)
 
-            // Auto-select page logic
             if (list.length > 0) {
                 const savedPageId = localStorage.getItem('selectedPageId')
                 if (savedPageId) {
                     const found = list.find((p) => p.pageId === savedPageId)
-                    if (found) {
-                        setSelectedPage(found)
-                        return
-                    }
+                    if (found) { setSelectedPage(found); return }
                 }
-                // Fallback to first if nothing saved or saved page not found
                 setSelectedPage(list[0])
             }
         } catch (err) {
@@ -38,7 +33,6 @@ export function PageProvider({ children }) {
         }
     }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Custom setter that also saves to localStorage
     const handleSetSelectedPage = useCallback((page) => {
         if (page) {
             localStorage.setItem('selectedPageId', page.pageId)
@@ -48,17 +42,45 @@ export function PageProvider({ children }) {
         setSelectedPage(page)
     }, [])
 
-    useEffect(() => {
-        if (user) {
-            fetchPages()
-        } else {
-            setPages([])
-            setSelectedPage(null)
+    // Toggle per-page automation on/off
+    const toggleAutomation = useCallback(async (pageId) => {
+        const page = pages.find(p => p.pageId === pageId)
+        if (!page) return
+        const newState = !page.automationEnabled
+        // Optimistic update
+        setPages(prev => prev.map(p => p.pageId === pageId ? { ...p, automationEnabled: newState } : p))
+        if (selectedPage?.pageId === pageId) {
+            setSelectedPage(prev => prev ? { ...prev, automationEnabled: newState } : prev)
         }
+        try {
+            const { data } = await api.patch(`/api/pages/${pageId}/automation`, { automationEnabled: newState })
+            // Sync with server response
+            setPages(prev => prev.map(p => p.pageId === pageId ? { ...p, automationEnabled: data.data.automationEnabled } : p))
+            if (selectedPage?.pageId === pageId) {
+                setSelectedPage(prev => prev ? { ...prev, automationEnabled: data.data.automationEnabled } : prev)
+            }
+        } catch (err) {
+            console.error('Toggle automation error:', err)
+            // Revert on failure
+            setPages(prev => prev.map(p => p.pageId === pageId ? { ...p, automationEnabled: !newState } : p))
+            if (selectedPage?.pageId === pageId) {
+                setSelectedPage(prev => prev ? { ...prev, automationEnabled: !newState } : prev)
+            }
+        }
+    }, [pages, selectedPage])
+
+    useEffect(() => {
+        if (user) { fetchPages() }
+        else { setPages([]); setSelectedPage(null) }
     }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
-        <PageContext.Provider value={{ pages, setPages, selectedPage, setSelectedPage: handleSetSelectedPage, loadingPages, fetchPages }}>
+        <PageContext.Provider value={{
+            pages, setPages,
+            selectedPage, setSelectedPage: handleSetSelectedPage,
+            loadingPages, fetchPages,
+            toggleAutomation,
+        }}>
             {children}
         </PageContext.Provider>
     )
